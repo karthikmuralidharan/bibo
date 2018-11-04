@@ -1,7 +1,19 @@
-import React, { Component } from 'react';
+import React, { Component, MouseEventHandler } from 'react';
+import { State } from '../state';
 
-const StartButton = () => {
-    return <a className="button is-large">Start</a>;
+interface Props {
+    onClick: MouseEventHandler;
+}
+
+const StartButton = ({ onClick }: Props) => {
+    return (
+        <button
+            onClick={e => onClick(e)}
+            className="button is-large is-warning"
+        >
+            Start
+        </button>
+    );
 };
 
 export default StartButton;
