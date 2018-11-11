@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import '../styles/App.css';
 import Header from '../components/Header';
-import Start from './Start';
+import Base from './Base';
 import { NewState, State } from '../state';
 
 interface Props {
@@ -13,7 +13,7 @@ const App = ({ state }: Props) => {
         <div className="App">
             <Header />
             <div id="rootContainer">
-                <Start state={state} />
+                <Base state={state} />
             </div>
         </div>
     );
