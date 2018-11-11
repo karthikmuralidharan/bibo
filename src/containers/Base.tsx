@@ -6,7 +6,7 @@ import Remember from './Remember';
 import ReactDOM, { render } from 'react-dom';
 
 interface Props {
-    state: State;
+    context: State;
 }
 
 class Base extends React.Component<Props, any> {
@@ -28,7 +28,7 @@ class Base extends React.Component<Props, any> {
                 console.log('reached');
                 return <StartButton onClick={this.handleStart} />;
             case OperationType.STARTED:
-                return <Remember state={this.props.state} />;
+                return <Remember state={this.props.context} />;
         }
     };
 

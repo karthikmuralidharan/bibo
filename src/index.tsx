@@ -5,7 +5,7 @@ import App from './containers/App';
 import * as serviceWorker from './serviceWorker';
 import { NewState } from './state';
 
-ReactDOM.render(<App state={NewState()} />, document.getElementById('root'));
+ReactDOM.render(<App context={NewState()} />, document.getElementById('root'));
 
 // If you want your app to work offline and load faster, you can change
 // unregister() to register() below. Note this comes with some pitfalls.

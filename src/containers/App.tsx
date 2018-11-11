@@ -2,18 +2,18 @@ import React, { Component } from 'react';
 import '../styles/App.css';
 import Header from '../components/Header';
 import Base from './Base';
-import { NewState, State } from '../state';
+import { State } from '../state';
 
-interface Props {
-    state: State;
+interface IProps {
+    context: State;
 }
 
-const App = ({ state }: Props) => {
+const App = ({ context }: IProps) => {
     return (
         <div className="App">
             <Header />
             <div id="rootContainer">
-                <Base state={state} />
+                <Base context={context} />
             </div>
         </div>
     );
