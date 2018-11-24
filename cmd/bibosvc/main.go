@@ -61,7 +61,7 @@ func main() {
 	r.Use(middleware.Recoverer)
 	r.Use(render.SetContentType(render.ContentTypeJSON))
 
-	r.Get("/images.random", func(w http.ResponseWriter, r *http.Request) {
+	r.Get("/images/random", func(w http.ResponseWriter, r *http.Request) {
 		images, err := randomImageFunc()
 		if err != nil {
 			render.Render(w, r, ErrRender(err))

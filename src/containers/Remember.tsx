@@ -13,7 +13,7 @@ export default class Remember extends React.Component<GlobalProps, any> {
     }
 
     componentWillMount = () => {
-        fetch('/images.random')
+        fetch('/images/random')
             .then(res => {
                 res.json().catch((resp: ImageListResponse) => {
                     this.state.images = resp.images;
