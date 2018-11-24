@@ -1,18 +1,33 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { State } from '../state';
+import { string } from 'prop-types';
+import { Image } from '../types/images';
 
 interface Props {
-    state: State;
+    context: State;
 }
 
-const Remember = ({ state }: Props) => {
-    state.breatheIn.correctCount += 1;
-    return (
-        <div>
-            <h1>SelectedCount : {state.breatheIn.correctCount}</h1>
-        </div>
-    );
-};
+export default class Remember extends React.Component<Props, any> {
+    state: { err: Error | null; images: Image[] } = { err: null, images: [] };
 
-export default Remember;
+    constructor(props: Props) {
+        super(props);
+    }
+
+    componentWillMount = () => {
+        fetch('localhost:8080/images.random')
+            .then(res => {
+                res.json().catch((resp: Image[]) => {
+                    this.state.images = resp;
+                });
+            })
+            .catch(e => {
+                this.state.err = e;
+            });
+    };
+
+    render() {
+        return <div>test</div>;
+    }
+}

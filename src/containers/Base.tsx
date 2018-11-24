@@ -28,7 +28,7 @@ class Base extends React.Component<Props, any> {
                 console.log('reached');
                 return <StartButton onClick={this.handleStart} />;
             case OperationType.STARTED:
-                return <Remember state={this.props.context} />;
+                return <Remember context={this.props.context} />;
         }
     };
 
