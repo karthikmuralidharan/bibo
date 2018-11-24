@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"math/rand"
 	"net/http"
 	"time"
 
@@ -12,36 +11,6 @@ import (
 	cache "github.com/patrickmn/go-cache"
 	"github.com/spf13/pflag"
 )
-
-// Image represents an image in a pool
-type Image struct {
-	ID     string `json:"id,omitempty"`
-	URL    string `json:"url,omitempty"`
-	Width  int    `json:"width,omitempty"`
-	Height int    `json:"height,omitempty"`
-}
-
-type ImageListResponse struct {
-	Images []Image `json:"images,omitempty"`
-}
-
-func (rd *ImageListResponse) Render(w http.ResponseWriter, r *http.Request) error {
-	// Pre-processing before a response is marshalled and sent across the wire
-	return nil
-}
-
-type imageFetcherFunc func(count int) ([]Image, error)
-
-// Shuffle shuffles around images for display
-func Shuffle(vals []Image) []Image {
-	r := rand.New(rand.NewSource(time.Now().Unix()))
-	ret := make([]Image, len(vals))
-	perm := r.Perm(len(vals))
-	for i, randIndex := range perm {
-		ret[i] = vals[randIndex]
-	}
-	return ret
-}
 
 func main() {
 
@@ -97,7 +66,7 @@ func main() {
 		resp := &ImageListResponse{Images: images}
 		render.Render(w, r, resp)
 	})
-	http.ListenAndServe(":3000", r)
+	http.ListenAndServe(":8080", r)
 }
 
 //--
@@ -123,6 +92,7 @@ func (e *ErrResponse) Render(w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
+// ErrRender renders an error from the system
 func ErrRender(err error) render.Renderer {
 	return &ErrResponse{
 		Err:            err,

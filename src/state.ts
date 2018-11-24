@@ -9,7 +9,6 @@ export interface SelectionDetail {
 export interface State {
     breatheIn: SelectionDetail;
     breatheOut: SelectionDetail;
-    catalog: string[];
     selectionCount: number;
     status: OperationType;
 }
@@ -36,8 +35,7 @@ export function NewState(): State {
             selection: [],
             correctCount: 0,
         },
-        catalog: [],
-        selectionCount: 0,
+        selectionCount: 3,
         status: OperationType.NOT_STARTED,
     };
 }
