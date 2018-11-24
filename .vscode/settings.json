@@ -1,4 +1,7 @@
 {
-  "editor.formatOnSave": true,
-  "typescript.format.enable": true
+    "editor.formatOnSave": true,
+    "typescript.format.enable": true,
+    "go.toolsEnvVars": {
+        "GO111MODULE": "on"
+    }
 }
