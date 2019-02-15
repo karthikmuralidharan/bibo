@@ -10,6 +10,7 @@
         "bulma": "^0.7.2",
         "react": "^16.6.0",
         "react-dom": "^16.6.0",
+        "react-grid-gallery": "^0.5.3",
         "react-helmet": "^5.2.0",
         "react-scripts": "2.1.1",
         "styled-components": "^4.0.3",
