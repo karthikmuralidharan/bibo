@@ -1,4 +1,4 @@
-export interface Image {
+export interface ImageResponse {
     id: string;
     url: string;
     width: number;
@@ -6,5 +6,7 @@ export interface Image {
 }
 
 export interface ImageListResponse {
-    images: Image[];
+    images: ImageResponse[];
+    breatheInMemory: string[];
+    breatheOutMemory: string[];
 }

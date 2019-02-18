@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"math/rand"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -16,19 +17,18 @@ import (
 )
 
 func main() {
+	rand.Seed(time.Now().UTC().UnixNano())
 
 	var (
-		clientID   = pflag.String("unsplash.client_id", "", "client id for accessing unsplash public APIs")
-		fetchCount = pflag.Int("img_count", 20, "count of images to fetch")
-		prodEnv    = pflag.Bool("production", false, "is production env")
+		clientID       = pflag.String("unsplash.client_id", "", "client id for accessing unsplash public APIs")
+		fetchCount     = pflag.Int("img_count", 20, "count of images to fetch")
+		selectionCount = pflag.Int("selection_count", 5, "count items to remember")
+		prodEnv        = pflag.Bool("production", false, "is production env")
 	)
 
 	pflag.Parse()
 
-	var fetchImages imageFetcherFunc
-	{
-		fetchImages = UnsplashImageFetcher(*clientID)
-	}
+	fetchImages := UnsplashImageFetcher(*clientID)
 
 	// Create a cache with a default expiration time of 5 minutes, and which
 	// purges expired items every 10 minutes
@@ -40,7 +40,7 @@ func main() {
 		if found {
 			fmt.Println("cache hit")
 			images := res.([]Image)
-			shuffled := Shuffle(images)
+			shuffled := ShuffleImages(images)
 			return shuffled, nil
 		}
 
@@ -49,7 +49,7 @@ func main() {
 			return nil, err
 		}
 		c.Set(cacheKey, images, cache.DefaultExpiration)
-		shuffled := Shuffle(images)
+		shuffled := ShuffleImages(images)
 		return shuffled, nil
 	}
 
@@ -67,9 +67,33 @@ func main() {
 			render.Render(w, r, ErrRender(err))
 			return
 		}
-		resp := &ImageListResponse{Images: images}
+
+		var imageURLs []string
+		for _, img := range images {
+			imageURLs = append(imageURLs, img.URL)
+		}
+
+		var breatheInSelection []string
+		{
+			breatheInSelection = ShuffleString(imageURLs)
+			breatheInSelection = breatheInSelection[:*selectionCount]
+		}
+
+		var breatheOutSelection []string
+		{
+			breatheOutSelection = ShuffleString(imageURLs)
+			breatheOutSelection = breatheOutSelection[:*selectionCount]
+		}
+
+		resp := &ImageListResponse{
+			Images:           images,
+			BreatheInMemory:  breatheInSelection,
+			BreatheOutMemory: breatheOutSelection,
+		}
+
 		render.Render(w, r, resp)
 	})
+
 	workDir, _ := os.Getwd()
 	var filesDir string
 	if *prodEnv {
@@ -77,6 +101,7 @@ func main() {
 	} else {
 		filesDir = filepath.Join(workDir, "dist")
 	}
+
 	FileServer(r, "/", http.Dir(filesDir))
 	http.ListenAndServe(":8080", r)
 }

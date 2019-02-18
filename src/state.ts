@@ -1,3 +1,11 @@
+export interface GalleryImage {
+    src: string;
+    thumbnail: string;
+    thumbnailWidth: number;
+    thumbnailHeight: number;
+    isSelected: boolean;
+}
+
 export interface SelectionDetail {
     selection: string[];
     correctCount: number;
@@ -5,6 +13,7 @@ export interface SelectionDetail {
 }
 
 export interface State {
+    images: GalleryImage[];
     breatheIn: SelectionDetail;
     breatheOut: SelectionDetail;
     selectionCount: number;
@@ -13,16 +22,16 @@ export interface State {
 
 export enum OperationType {
     NOT_STARTED,
-    STARTED,
-    BREATHE_IN_STARTED,
-    BREATHE_IN_COMPLETE,
-    BREATHE_OUT_STARTED,
-    BREATHE_OUT_COMPLETE,
+    BREATHE_IN_REMEMBER,
+    BREATHE_IN_SELECTION,
+    BREATHE_OUT_REMEMBER,
+    BREATHE_OUT_SELECTION,
     SUBMISSION,
 }
 
 export function NewState(): State {
     return {
+        images: [],
         breatheIn: {
             selected: [],
             selection: [],
@@ -33,7 +42,7 @@ export function NewState(): State {
             selection: [],
             correctCount: 0,
         },
-        selectionCount: 3,
+        selectionCount: 5,
         status: OperationType.NOT_STARTED,
     };
 }
