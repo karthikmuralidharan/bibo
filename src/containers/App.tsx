@@ -13,7 +13,7 @@ const App = ({ context }: IProps) => {
         <div className="App">
             <Header />
             <div id="rootContainer">
-                <Base context={context} />
+                <Base />
             </div>
         </div>
     );
