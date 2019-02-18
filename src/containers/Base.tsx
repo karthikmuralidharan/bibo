@@ -1,14 +1,11 @@
-import React, { useState, useEffect, MouseEventHandler } from 'react';
-import StartButton from '../components/StartButton';
-import { State, OperationType, GalleryImage } from '../state';
+import React, { MouseEventHandler, useEffect, useState } from 'react';
 import Remember from '../components/Remember';
+import StartButton from '../components/StartButton';
+import { GalleryImage, OperationType } from '../state';
 import '../styles/Base.css';
 import { ImageListResponse } from '../types/images';
 import Selection from './Selection';
-
-interface Props {
-    context: State;
-}
+import Report from '../components/Report';
 
 async function prepareImages() {
     const res = await fetch('/images/random');
@@ -30,6 +27,22 @@ async function prepareImages() {
     };
 }
 
+function nextOp(op: OperationType): OperationType {
+    switch (op) {
+        case OperationType.NOT_STARTED:
+            return OperationType.BREATHE_IN_REMEMBER;
+        case OperationType.BREATHE_IN_REMEMBER:
+            return OperationType.BREATHE_IN_SELECTION;
+        case OperationType.BREATHE_IN_SELECTION:
+            return OperationType.BREATHE_OUT_REMEMBER;
+        case OperationType.BREATHE_OUT_REMEMBER:
+            return OperationType.BREATHE_OUT_SELECTION;
+        case OperationType.BREATHE_OUT_SELECTION:
+            return OperationType.SUBMISSION;
+    }
+    return OperationType.NOT_STARTED;
+}
+
 function Base() {
     const [initialized, setInitialized] = useState(false);
     let [op, setOp] = useState(OperationType.NOT_STARTED);
@@ -40,6 +53,20 @@ function Base() {
 
     let [breatheOutMemory, setBreatheOutMemory] = useState<string[]>([]);
     let [breatheOutCount, setBreatheOutCount] = useState(0);
+
+    useEffect(() => {
+        if (initialized) return;
+        prepareImages().then(({ gallery, inMemory, outMemory }) => {
+            setInitialized(true);
+            setImages(gallery);
+            setBreatheInMemory(inMemory);
+            setBreatheOutMemory(outMemory);
+        });
+    });
+
+    const goToNextState = () => {
+        setOp(nextOp(op));
+    };
 
     const memoryFor = (op: OperationType) => {
         switch (op) {
@@ -53,42 +80,44 @@ function Base() {
         return [];
     };
 
-    useEffect(() => {
-        if (initialized) return;
-        prepareImages().then(({ gallery, inMemory, outMemory }) => {
-            setInitialized(true);
-            setImages(gallery);
-            setBreatheInMemory(inMemory);
-            setBreatheOutMemory(outMemory);
-        });
-    });
-
-    const onStart = () => {
-        setOp(OperationType.BREATHE_IN_REMEMBER);
+    const setCounterFor = (op: OperationType, count: number) => {
+        return op == OperationType.BREATHE_IN_SELECTION
+            ? setBreatheInCount(count)
+            : setBreatheOutCount(count);
     };
 
-    const startBreatheInSelection = () => {
-        setOp(OperationType.BREATHE_IN_SELECTION);
+    const updateBreatheCount = (op: OperationType, selection: string[]) => {
+        let intersection = memoryFor(op).filter(x => selection.includes(x));
+        console.log(
+            'received op: ',
+            op,
+            'with selection: ',
+            selection,
+            ' and intersection: ',
+            intersection
+        );
+        setCounterFor(op, intersection.length);
     };
 
     const onSubmit = (
         op: OperationType,
         selection: string[]
     ): MouseEventHandler => {
-        return e => {
-            console.log('received op: ', op, 'with selection: ', selection);
+        return () => {
+            updateBreatheCount(op, selection);
+            goToNextState();
         };
     };
 
     const next = () => {
         switch (op) {
             case OperationType.NOT_STARTED:
-                return <StartButton onClick={onStart} />;
+                return <StartButton onClick={goToNextState} />;
             case OperationType.BREATHE_IN_REMEMBER:
             case OperationType.BREATHE_OUT_REMEMBER:
                 return (
                     <Remember
-                        onClick={startBreatheInSelection}
+                        onClick={goToNextState}
                         images={images.filter(x =>
                             memoryFor(op).includes(x.src)
                         )}
@@ -105,6 +134,8 @@ function Base() {
                         memory={memoryFor(op)}
                     />
                 );
+            case OperationType.SUBMISSION:
+                return <Report />;
         }
     };
 
