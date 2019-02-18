@@ -1,45 +1,66 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, MouseEventHandler } from 'react';
 import StartButton from '../components/StartButton';
 import { State, OperationType, GalleryImage } from '../state';
 import Remember from '../components/Remember';
 import '../styles/Base.css';
 import { ImageListResponse } from '../types/images';
+import Selection from './Selection';
 
 interface Props {
     context: State;
 }
 
-function Base(props: Props) {
+async function prepareImages() {
+    const res = await fetch('/images/random');
+    const resp: ImageListResponse = await res.json();
+    const galleryImages: GalleryImage[] = resp.images.map(img => {
+        return {
+            src: img.url,
+            thumbnail: img.url,
+            thumbnailWidth: img.width,
+            thumbnailHeight: img.height,
+            isSelected: false,
+        };
+    });
+
+    return {
+        gallery: galleryImages,
+        inMemory: resp.breatheInMemory,
+        outMemory: resp.breatheOutMemory,
+    };
+}
+
+function Base() {
     const [initialized, setInitialized] = useState(false);
     let [op, setOp] = useState(OperationType.NOT_STARTED);
     let [images, setImages] = useState<GalleryImage[]>([]);
+
     let [breatheInMemory, setBreatheInMemory] = useState<string[]>([]);
+    let [breatheInCount, setBreatheInCount] = useState(0);
+
     let [breatheOutMemory, setBreatheOutMemory] = useState<string[]>([]);
+    let [breatheOutCount, setBreatheOutCount] = useState(0);
 
-    async function prepareImages(props: Props) {
-        const res = await fetch('/images/random');
-        const resp: ImageListResponse = await res.json();
-        const galleryImages: GalleryImage[] = resp.images.map(img => {
-            return {
-                src: img.url,
-                thumbnail: img.url,
-                thumbnailWidth: img.width,
-                thumbnailHeight: img.height,
-                isSelected: false,
-            };
-        });
-
-        setImages(galleryImages);
-        setBreatheInMemory(resp.breatheInMemory);
-        setBreatheOutMemory(resp.breatheOutMemory);
-    }
+    const memoryFor = (op: OperationType) => {
+        switch (op) {
+            case OperationType.BREATHE_IN_SELECTION:
+            case OperationType.BREATHE_IN_REMEMBER:
+                return breatheInMemory;
+            case OperationType.BREATHE_OUT_SELECTION:
+            case OperationType.BREATHE_OUT_REMEMBER:
+                return breatheOutMemory;
+        }
+        return [];
+    };
 
     useEffect(() => {
-        if (!initialized) {
-            prepareImages(props).then(() => {
-                setInitialized(true);
-            });
-        }
+        if (initialized) return;
+        prepareImages().then(({ gallery, inMemory, outMemory }) => {
+            setInitialized(true);
+            setImages(gallery);
+            setBreatheInMemory(inMemory);
+            setBreatheOutMemory(outMemory);
+        });
     });
 
     const onStart = () => {
@@ -50,25 +71,13 @@ function Base(props: Props) {
         setOp(OperationType.BREATHE_IN_SELECTION);
     };
 
-    const onSelection = (idx: number) => {
-        const selected = !images[idx].isSelected;
-        images[idx].isSelected = selected;
-
-        setImages(images);
-
-        let count = 1;
-        if (!selected) {
-            count = -1;
-        }
-
-        switch (op) {
-            case OperationType.BREATHE_IN_SELECTION:
-                props.context.breatheIn.selected;
-                break;
-            case OperationType.BREATHE_OUT_SELECTION:
-                props.context.breatheOut.selected;
-                break;
-        }
+    const onSubmit = (
+        op: OperationType,
+        selection: string[]
+    ): MouseEventHandler => {
+        return e => {
+            console.log('received op: ', op, 'with selection: ', selection);
+        };
     };
 
     const next = () => {
@@ -76,13 +85,24 @@ function Base(props: Props) {
             case OperationType.NOT_STARTED:
                 return <StartButton onClick={onStart} />;
             case OperationType.BREATHE_IN_REMEMBER:
+            case OperationType.BREATHE_OUT_REMEMBER:
                 return (
                     <Remember
                         onClick={startBreatheInSelection}
                         images={images.filter(x =>
-                            breatheInMemory.includes(x.src)
+                            memoryFor(op).includes(x.src)
                         )}
                         op={op}
+                    />
+                );
+            case OperationType.BREATHE_IN_SELECTION:
+            case OperationType.BREATHE_OUT_SELECTION:
+                return (
+                    <Selection
+                        allImages={images}
+                        onSubmit={onSubmit}
+                        op={op}
+                        memory={memoryFor(op)}
                     />
                 );
         }
