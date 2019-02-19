@@ -10504,7 +10504,7 @@ yargs@^11.0.0:
   integrity sha512-NwW69J42EsCSanF8kyn5upxvjp5ds+t3+udGBeTbFnERA+lF541DDpMawzo4z6W/QrzNM18D+BPMiOBibnFV5A==
   dependencies:
     cliui "^4.0.0"
-    decamelize "^1.1.1"
+    decamelize   "^1.1.1"
     find-up "^2.1.0"
     get-caller-file "^1.0.1"
     os-locale "^2.0.0"
