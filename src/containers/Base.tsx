@@ -1,47 +1,11 @@
 import React, { MouseEventHandler, useEffect, useState } from 'react';
 import Remember from '../components/Remember';
 import StartButton from '../components/StartButton';
-import { GalleryImage, OperationType } from '../state';
+import { GalleryImage, OperationType, nextOp, generateReport } from '../state';
+import { prepareImages } from '../api';
 import '../styles/Base.css';
-import { ImageListResponse } from '../types/images';
 import Selection from './Selection';
 import Report from '../components/Report';
-
-async function prepareImages() {
-    const res = await fetch('/images/random');
-    const resp: ImageListResponse = await res.json();
-    const galleryImages: GalleryImage[] = resp.images.map(img => {
-        return {
-            src: img.url,
-            thumbnail: img.url,
-            thumbnailWidth: img.width,
-            thumbnailHeight: img.height,
-            isSelected: false,
-        };
-    });
-
-    return {
-        gallery: galleryImages,
-        inMemory: resp.breatheInMemory,
-        outMemory: resp.breatheOutMemory,
-    };
-}
-
-function nextOp(op: OperationType): OperationType {
-    switch (op) {
-        case OperationType.NOT_STARTED:
-            return OperationType.BREATHE_IN_REMEMBER;
-        case OperationType.BREATHE_IN_REMEMBER:
-            return OperationType.BREATHE_IN_SELECTION;
-        case OperationType.BREATHE_IN_SELECTION:
-            return OperationType.BREATHE_OUT_REMEMBER;
-        case OperationType.BREATHE_OUT_REMEMBER:
-            return OperationType.BREATHE_OUT_SELECTION;
-        case OperationType.BREATHE_OUT_SELECTION:
-            return OperationType.SUBMISSION;
-    }
-    return OperationType.NOT_STARTED;
-}
 
 function Base() {
     const [initialized, setInitialized] = useState(false);
@@ -54,6 +18,8 @@ function Base() {
     let [breatheOutMemory, setBreatheOutMemory] = useState<string[]>([]);
     let [breatheOutCount, setBreatheOutCount] = useState(0);
 
+    const [selectionSize, setSelectionSize] = useState(0);
+
     useEffect(() => {
         if (initialized) return;
         prepareImages().then(({ gallery, inMemory, outMemory }) => {
@@ -61,6 +27,7 @@ function Base() {
             setImages(gallery);
             setBreatheInMemory(inMemory);
             setBreatheOutMemory(outMemory);
+            setSelectionSize(inMemory.length);
         });
     });
 
@@ -99,11 +66,21 @@ function Base() {
         setCounterFor(op, intersection.length);
     };
 
+    const resetImageSelections = () => {
+        setImages(
+            images.map(img => {
+                img.isSelected = false;
+                return img;
+            })
+        );
+    };
+
     const onSubmit = (
         op: OperationType,
         selection: string[]
     ): MouseEventHandler => {
         return () => {
+            resetImageSelections();
             updateBreatheCount(op, selection);
             goToNextState();
         };
@@ -135,7 +112,17 @@ function Base() {
                     />
                 );
             case OperationType.SUBMISSION:
-                return <Report />;
+                const { inPercentage, outPercentage } = generateReport(
+                    breatheInCount,
+                    breatheOutCount,
+                    selectionSize
+                );
+                return (
+                    <Report
+                        inPercent={inPercentage}
+                        outPercent={outPercentage}
+                    />
+                );
         }
     };
 

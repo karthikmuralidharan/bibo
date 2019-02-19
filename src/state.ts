@@ -46,3 +46,32 @@ export function NewState(): State {
         status: OperationType.NOT_STARTED,
     };
 }
+
+export function nextOp(op: OperationType): OperationType {
+    switch (op) {
+        case OperationType.NOT_STARTED:
+            return OperationType.BREATHE_IN_REMEMBER;
+        case OperationType.BREATHE_IN_REMEMBER:
+            return OperationType.BREATHE_IN_SELECTION;
+        case OperationType.BREATHE_IN_SELECTION:
+            return OperationType.BREATHE_OUT_REMEMBER;
+        case OperationType.BREATHE_OUT_REMEMBER:
+            return OperationType.BREATHE_OUT_SELECTION;
+        case OperationType.BREATHE_OUT_SELECTION:
+            return OperationType.SUBMISSION;
+    }
+    return OperationType.NOT_STARTED;
+}
+
+export function generateReport(
+    inCount: number,
+    outCount: number,
+    selectionSize: number
+) {
+    const inPercentage = Math.floor(inCount / selectionSize * 100);
+    const outPercentage = Math.floor(outCount / selectionSize * 100);
+    return {
+        inPercentage,
+        outPercentage,
+    };
+}
