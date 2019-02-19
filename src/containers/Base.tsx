@@ -3,9 +3,10 @@ import Remember from '../components/Remember';
 import StartButton from '../components/StartButton';
 import { GalleryImage, OperationType, nextOp, generateReport } from '../state';
 import { prepareImages } from '../api';
-import '../styles/Base.css';
 import Selection from './Selection';
 import Report from '../components/Report';
+
+import '../styles/Base.css';
 
 function Base() {
     const [initialized, setInitialized] = useState(false);

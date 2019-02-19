@@ -1,5 +1,4 @@
-import React, { Component, MouseEventHandler } from 'react';
-import { State } from '../state';
+import React, { MouseEventHandler } from 'react';
 
 interface Props {
     onClick: MouseEventHandler;
