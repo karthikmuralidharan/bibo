@@ -5,7 +5,7 @@ export interface ImageResponse {
     height: number;
 }
 
-export interface ImageListResponse {
+export interface ImageList {
     images: ImageResponse[];
     breatheInMemory: string[];
     breatheOutMemory: string[];

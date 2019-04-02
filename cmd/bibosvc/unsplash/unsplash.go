@@ -1,4 +1,4 @@
-package main
+package unsplash
 
 import (
 	"encoding/json"
@@ -6,10 +6,11 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/karthikmuralidharan/bibo/cmd/bibosvc/domain/image"
 	"github.com/pkg/errors"
 )
 
-type unsplashImage struct {
+type Image struct {
 	ID          string      `json:"id"`
 	CreatedAt   string      `json:"created_at"`
 	UpdatedAt   string      `json:"updated_at"`
@@ -92,9 +93,8 @@ type unsplashImage struct {
 	Downloads int `json:"downloads"`
 }
 
-func UnsplashImageFetcher(clientID string) imageFetcherFunc {
-
-	fetchRandomImages := func(count int) ([]Image, error) {
+func ImageFetcher(clientID string) image.Fetcher {
+	return func(count int) ([]image.Image, error) {
 		url := "https://api.unsplash.com/photos/random?client_id=" + clientID + "&w=400&h=400&orientation=squarish&count=" + strconv.Itoa(count)
 		req, err := http.NewRequest("GET", url, nil)
 		if err != nil {
@@ -106,7 +106,7 @@ func UnsplashImageFetcher(clientID string) imageFetcherFunc {
 		}
 		defer res.Body.Close()
 
-		var resp []unsplashImage
+		var resp []Image
 
 		b, err := ioutil.ReadAll(res.Body)
 		if err != nil {
@@ -117,9 +117,9 @@ func UnsplashImageFetcher(clientID string) imageFetcherFunc {
 			return nil, errors.WithMessage(err, "decoding unsplash response")
 		}
 
-		var images []Image
+		var images []image.Image
 		for _, unsplashImg := range resp {
-			img := Image{
+			img := image.Image{
 				ID:     unsplashImg.ID,
 				Width:  400,
 				Height: 400,
@@ -129,6 +129,4 @@ func UnsplashImageFetcher(clientID string) imageFetcherFunc {
 		}
 		return images, nil
 	}
-
-	return fetchRandomImages
 }
