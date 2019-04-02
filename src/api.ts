@@ -1,4 +1,4 @@
-import { ImageListResponse } from './types/images';
+import { ImageList } from './types/images';
 import { GalleryImage } from './state';
 
 async function postData(url = ``, data = {}) {
@@ -23,7 +23,7 @@ async function postData(url = ``, data = {}) {
 
 export async function prepareImages() {
     const res = await fetch('/images/random');
-    const resp: ImageListResponse = await res.json();
+    const resp: ImageList = await res.json();
     const galleryImages: GalleryImage[] = resp.images.map(img => {
         return {
             src: img.url,

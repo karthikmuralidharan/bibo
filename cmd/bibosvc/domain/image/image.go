@@ -1,10 +1,13 @@
-package main
+package image
 
 import (
 	"math/rand"
 	"net/http"
 	"time"
 )
+
+// Fetcher fetches a set of images with size provided as input
+type Fetcher func(count int) ([]Image, error)
 
 // Image represents an image in a pool
 type Image struct {
@@ -14,13 +17,13 @@ type Image struct {
 	Height int    `json:"height,omitempty"`
 }
 
-type ImageListResponse struct {
+type ImageList struct {
 	Images           []Image  `json:"images,omitempty"`
 	BreatheInMemory  []string `json:"breatheInMemory,omitempty"`
 	BreatheOutMemory []string `json:"breatheOutMemory,omitempty"`
 }
 
-func (rd *ImageListResponse) Render(w http.ResponseWriter, r *http.Request) error {
+func (rd *ImageList) Render(w http.ResponseWriter, r *http.Request) error {
 	// Pre-processing before a response is marshalled and sent across the wire
 	return nil
 }

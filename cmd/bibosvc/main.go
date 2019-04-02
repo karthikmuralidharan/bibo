@@ -12,6 +12,9 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/render"
+	"github.com/karthikmuralidharan/bibo/cmd/bibosvc/unsplash"
+	"github.com/karthikmuralidharan/bibo/cmd/bibosvc/domain/image"
+
 	cache "github.com/patrickmn/go-cache"
 	"github.com/spf13/pflag"
 )
@@ -23,24 +26,24 @@ func main() {
 		clientID       = pflag.String("unsplash.client_id", "", "client id for accessing unsplash public APIs")
 		fetchCount     = pflag.Int("img_count", 20, "count of images to fetch")
 		selectionCount = pflag.Int("selection_count", 5, "count items to remember")
-		prodEnv        = pflag.Bool("production", false, "is production env")
+		// postgresURL    = pflag.String("postgres_url", "postgresql://postgres:postgres@localhost:5432", "connection to the postgres database")
 	)
 
 	pflag.Parse()
 
-	fetchImages := UnsplashImageFetcher(*clientID)
+	fetchImages := unsplash.ImageFetcher(*clientID)
 
 	// Create a cache with a default expiration time of 5 minutes, and which
 	// purges expired items every 10 minutes
 	c := cache.New(2*time.Minute, 5*time.Minute)
 
-	randomImageFunc := func() ([]Image, error) {
+	randomImageFunc := func() ([]image.Image, error) {
 		const cacheKey = "random_images"
 		res, found := c.Get(cacheKey)
 		if found {
 			fmt.Println("cache hit")
-			images := res.([]Image)
-			shuffled := ShuffleImages(images)
+			images := res.([]image.Image)
+			shuffled := image.ShuffleImages(images)
 			return shuffled, nil
 		}
 
@@ -49,7 +52,7 @@ func main() {
 			return nil, err
 		}
 		c.Set(cacheKey, images, cache.DefaultExpiration)
-		shuffled := ShuffleImages(images)
+		shuffled := image.ShuffleImages(images)
 		return shuffled, nil
 	}
 
@@ -75,17 +78,17 @@ func main() {
 
 		var breatheInSelection []string
 		{
-			breatheInSelection = ShuffleString(imageURLs)
+			breatheInSelection = image.ShuffleString(imageURLs)
 			breatheInSelection = breatheInSelection[:*selectionCount]
 		}
 
 		var breatheOutSelection []string
 		{
-			breatheOutSelection = ShuffleString(imageURLs)
+			breatheOutSelection = image.ShuffleString(imageURLs)
 			breatheOutSelection = breatheOutSelection[:*selectionCount]
 		}
 
-		resp := &ImageListResponse{
+		resp := &image.ImageList{
 			Images:           images,
 			BreatheInMemory:  breatheInSelection,
 			BreatheOutMemory: breatheOutSelection,
@@ -94,16 +97,15 @@ func main() {
 		render.Render(w, r, resp)
 	})
 
+	serveStatic(r)
+	http.ListenAndServe(":8080", r)
+}
+
+func serveStatic(r chi.Router) {
 	workDir, _ := os.Getwd()
-	var filesDir string
-	if *prodEnv {
-		filesDir = filepath.Join(workDir, "build")
-	} else {
-		filesDir = filepath.Join(workDir, "dist")
-	}
+	filesDir := filepath.Join(workDir, "dist")
 
 	FileServer(r, "/", http.Dir(filesDir))
-	http.ListenAndServe(":8080", r)
 }
 
 //--
